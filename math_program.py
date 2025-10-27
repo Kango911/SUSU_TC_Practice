@@ -1,5 +1,7 @@
 import random
 import operator
+import json
+import os
 
 
 class MathTrainer:
@@ -51,11 +53,35 @@ class MathTrainer:
             return False
 
 
-def math_program():
+def save_math_stats(total_questions, correct_answers):
+    """Сохранение статистики по математике"""
+    stats = {
+        "total_questions": total_questions,
+        "correct_answers": correct_answers
+    }
+
+    # Загружаем существующую статистику
+    if os.path.exists('math_stats.json'):
+        try:
+            with open('math_stats.json', 'r', encoding='utf-8') as f:
+                existing_stats = json.load(f)
+                stats["total_questions"] += existing_stats.get("total_questions", 0)
+                stats["correct_answers"] += existing_stats.get("correct_answers", 0)
+        except:
+            pass
+
+    # Сохраняем обновленную статистику
+    with open('math_stats.json', 'w', encoding='utf-8') as f:
+        json.dump(stats, f, ensure_ascii=False, indent=2)
+
+
+def math_program(user_name=""):
     trainer = MathTrainer()
 
-    print("=" * 50)
-    print("ПРОГРАММА: МАТЕМАТИЧЕСКИЕ ПРИМЕРЫ")
+    print("\n" + "=" * 50)
+    print("🧮 ПРОГРАММА: МАТЕМАТИЧЕСКИЕ ПРИМЕРЫ")
+    if user_name:
+        print(f"👤 Пользователь: {user_name}")
     print("=" * 50)
     print("Решите примеры с трехзначными числами!")
     print("Вводите ответы с точностью до двух знаков после запятой")
@@ -65,7 +91,7 @@ def math_program():
     total_questions = 5
 
     for i in range(total_questions):
-        print(f"\nВопрос {i + 1}/{total_questions}:")
+        print(f"\n❓ Вопрос {i + 1}/{total_questions}:")
 
         expression, correct_answer = trainer.generate_expression()
         print(f"Вычислите: {expression}")
@@ -78,10 +104,15 @@ def math_program():
         else:
             print(f"❌ Неправильно. Правильный ответ: {correct_answer}")
 
+    # Сохраняем статистику
+    save_math_stats(total_questions, score)
+
     print("\n" + "=" * 50)
-    print("РЕЗУЛЬТАТЫ:")
+    print("📊 РЕЗУЛЬТАТЫ:")
     print(f"Правильных ответов: {score}/{total_questions}")
-    print(f"Процент правильных ответов: {score / total_questions * 100:.1f}%")
+
+    success_rate = (score / total_questions) * 100
+    print(f"Процент правильных ответов: {success_rate:.1f}%")
 
     if score == total_questions:
         print("🎉 Отличный результат! Вы математический гений!")
@@ -91,6 +122,8 @@ def math_program():
         print("😊 Неплохо, но можно лучше!")
     else:
         print("💪 Продолжайте тренироваться!")
+
+    print("=" * 50)
 
 
 if __name__ == "__main__":

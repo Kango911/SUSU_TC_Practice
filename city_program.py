@@ -73,18 +73,22 @@ class CityManager:
         return False
 
 
-def city_program():
+def city_program(user_name=""):
     manager = CityManager()
 
+    print("\n" + "=" * 50)
+    print("🏙️  ПРОГРАММА: ГОРОДА РОССИИ")
+    if user_name:
+        print(f"👤 Пользователь: {user_name}")
     print("=" * 50)
-    print("ПРОГРАММА: ГОРОДА РОССИИ")
+    print(f"📊 В базе данных: {len(manager.cities)} городов")
     print("=" * 50)
 
     while True:
         user_city = input("\nВ каком городе Вы живёте? ").strip()
 
         if not user_city:
-            print("Пожалуйста, введите название города.")
+            print("❌ Пожалуйста, введите название города.")
             continue
 
         # Проверяем, есть ли город в списке
@@ -95,36 +99,70 @@ def city_program():
                 break
 
         if found_city:
-            print(f"\n{found_city} - хороший город!")
+            print(f"\n🎉 {found_city} - хороший город!")
+
+            # Сохраняем статистику
+            save_city_interaction(user_city, True)
             break
         else:
-            print(f"\nГород '{user_city}' не найден в списке.")
+            print(f"\n❌ Город '{user_city}' не найден в списке.")
+
+            # Сохраняем статистику
+            save_city_interaction(user_city, False)
 
             # Ищем похожие города
             similar_cities = manager.find_similar_city(user_city)
 
             if similar_cities:
-                print("Возможно, вы имели в виду один из этих городов:")
+                print("🔍 Возможно, вы имели в виду один из этих городов:")
                 for i, city in enumerate(similar_cities, 1):
-                    print(f"{i}. {city}")
+                    print(f"   {i}. {city}")
 
                 choice = input("\nВыберите номер города или нажмите Enter для продолжения: ")
                 if choice.isdigit() and 1 <= int(choice) <= len(similar_cities):
                     selected_city = similar_cities[int(choice) - 1]
-                    print(f"\n{selected_city} - хороший город!")
+                    print(f"\n🎉 {selected_city} - хороший город!")
                     break
 
             # Предлагаем добавить город
             add_choice = input("\nХотите добавить этот город в список? (да/нет): ").lower()
             if add_choice in ['да', 'д', 'yes', 'y']:
                 if manager.add_city(user_city):
-                    print(f"Город '{user_city}' успешно добавлен в список!")
-                    print(f"\n{user_city} - хороший город!")
+                    print(f"✅ Город '{user_city}' успешно добавлен в список!")
+                    print(f"\n🎉 {user_city} - хороший город!")
                     break
                 else:
-                    print("Этот город уже есть в списке!")
+                    print("⚠️ Этот город уже есть в списке!")
             else:
-                print("Попробуйте ввести другой город.")
+                print("🔄 Попробуйте ввести другой город.")
+
+
+def save_city_interaction(city_name, found):
+    """Сохранение статистики по городам"""
+    stats = {
+        "searches": 0,
+        "found": 0,
+        "not_found": 0
+    }
+
+    # Загружаем существующую статистику
+    if os.path.exists('city_stats.json'):
+        try:
+            with open('city_stats.json', 'r', encoding='utf-8') as f:
+                stats = json.load(f)
+        except:
+            pass
+
+    # Обновляем статистику
+    stats["searches"] = stats.get("searches", 0) + 1
+    if found:
+        stats["found"] = stats.get("found", 0) + 1
+    else:
+        stats["not_found"] = stats.get("not_found", 0) + 1
+
+    # Сохраняем обновленную статистику
+    with open('city_stats.json', 'w', encoding='utf-8') as f:
+        json.dump(stats, f, ensure_ascii=False, indent=2)
 
 
 if __name__ == "__main__":
